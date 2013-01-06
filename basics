@@ -1,0 +1,259 @@
+# The most basic object is a vector. 
+# Vector can only include elements of the same class
+# Elements of different classes can be stored in lists
+
+# Numbers are numeric numbers, with 2 digits after comma
+# To explicitly introduce an integer use suffix L
+
+x <- 1L
+
+# Inf stays for infinity, so 1/Inf = 0 and 1/0 = Inf
+# NaN stays for "not a number" or undefined value, e.g. 0/0 is NaN
+
+# Object attributes
+# examples:
+# - names, dimnames
+# - dimensions (matrices, arrays)
+# - class (numerical, logical etc.)
+# - length (number of objects in a vector)
+# - other
+
+attributes(x)	# list of attributes of variable x
+
+print(x)	# explicitly prints content of variable x
+
+x		# equivalent way of printing content
+
+x <- 1:20	# assignment of sequence ot a vector x
+
+# Function c() is equivalent way of defining vector
+
+x <- c("a", "b", "c")
+
+# Empty vector can be created via announcing a class and length
+
+x <- c("numeric", length = 10)
+
+# Coersion occurs if objects of different classes are assigned to
+# the same vector. All elements are coerced to the same class.
+
+# Function as() is used to explicit coersion (conversion between 
+# classes
+
+x <- 0:6
+class(x)	# gives "integer" as output
+as.numeric(x)	# converts into numeric class
+as.logical(x)	# converts all values to boolean equivalents
+as.character(x)	# converts numbers into strings
+as.complex(x)	# creates complex numbers (+0i)
+
+# Nonsensical coersion results in NAs (missing values), e.g. 
+# when converting characters into numeric or logical class
+
+as.logical("hello") # results in NA output
+
+# Matrices
+# Necessary attribute is dimension, which is an integer vector
+# of length = 2 (nrow, ncol)
+
+m <- matrix(nrow = 2, ncol = 3)
+
+# Fucntion dim() returns number of rows and columns in matrix
+
+dim(m)		# returns 2 3 as output
+
+# Another way of determining number of dimensions is attributes()
+
+attributes(m)	# returns $dim and 2 3 as output
+
+# Matrices are constructed COLUMNWISE. Example:
+
+# > m <- matrix(1:6, nrow = 2, ncol = 3)
+# > m
+# 	[,1]	[,2]	[,3]
+# [1,]	1	3	5
+# [2,]	2	4	6
+
+# Number of elements must be equal to ncol*nrow
+
+# Transforming a vector into matrix is done via assigning
+# dimension attribute of the vector to another vector consisting
+# of 2 elements (nrow, ncol):
+
+m <- 1:10
+dim(m) <- c(2, 5)	# nrow, ncol are 2 and 5 respectively
+
+# Binding rows or columns is done with functions rbind() and
+# cbind() respectively. The rows or columns is then named after
+# a variable that contained them.
+
+x <- 1:3
+y <- 10:12
+cbind(x, y)	# creates a matrix with columns x and y containing
+		# respective elements
+
+# Lists
+# assigned with a function list()
+
+x <- list(1, "a", TRUE, 1+4i)
+
+# Factors
+# Factors are used to represent categorical data. They can be
+# ordered or unordered
+# Factors are treated specially by modelling functions lm() and glm()
+# Factors contain labels in contrast to simple vectors
+
+# Function factor() creates factors:
+
+x <- factor(c("yes", "yes", "no", "yes", "no"))
+
+# Attribute Levels of factor represends all different values
+# comprising a factor. In the example above levels are "yes" and "no"
+
+# Function unclass() strips out the class from the factor (unordered)
+# The order of levels can be specified using explicit assignment of
+# levels in desired order:
+
+x <- factor(c("yes", "yes", "no", "yes", "no"),
+		levels = c("yes", "no"))
+
+# In the example above is levels are not expicitly set, alphabetical
+# order is used by default ("no", "yes")
+
+# Functions is.na() and is.nan() test if the objects are NAs or NaNs
+# The function returns logic object
+
+x <- c(1, 2, NA, NAN, 3)
+is.na(x)	# returns FALSE	FALSE	TRUE	TRUE	FALSE
+is.nan(x)	# returns FALSE	FALSE	FALSE	TRUE	FALSE
+
+# NaN is always NA but NA is not always NaN
+
+# Data frames
+# Data frames is a special type of list where every element has the
+# same length. Each element of the list can be thought as a column
+# and the length of each element of the list is the number of rows
+# Data frames can store elements of different classes
+
+# Special attribute of data frames - row.names()
+
+# Data frame can be created by function data.frame()
+
+x <- data.frame(foo = 1:4, bar = c(T, T, F, F))
+
+# Data frames are usually created by calling read.table() or
+# read.csv()
+
+# Data frames can be converted to a matrix by data.matrix()
+
+# Functions nrow() and ncol() return number of rows and columns
+
+# Names
+# All objects can have attribute "names"
+# Function names() returns attribute "name" for the object:
+
+x <- 1:3
+names(x)	# returns NULL as no names are assigned
+names(x) <- c("foo", "bar", "norf")
+names(x)	# returns a vector consisting of x's elements' names
+print(x)	# returns a table where the 1st row is the names
+		# and the next lists actual values of elements
+# Assignment of names to list elements:
+
+x <- list(a = 1, b = 2, c = 3)	# creates list with 3 named elements
+
+# Matrices can also have names
+# Function dimnames() is responsible for naming elements of matrix:
+
+m <- matrix(1:4, nrow = 2, ncol = 2)
+dimnames(m) <- list(c("a", "b"), c("c", "d"))
+
+# > print(m)
+# > 	c d
+# >  a  1 3
+# >  b  2 4
+
+### Subsets ###
+# [ retuns object from a vector (of the same class as the original)
+# [[ is used to extract objects from lists and data frames
+# $ is used to extract objects by name
+
+# Numerical index:
+
+x <- c("a", "b", "c", "c", "d", "a")
+x[1]	# returns "a"
+x[1:4]	# returns "a" "b" "c" "c"
+
+# Logical index:
+
+x[x > "a"]	# retuns "b" "c" "c" "d"
+
+u <- x > "a"	# creates a logical vector u (F T T T T F)
+x[u]		# retuns "b" "c" "c" "d" as if u was assigned with
+		# logical operation
+
+
+# Matrices can be subsetted with (i, j) indices (row, column)
+# Entire row or column may be subsetted by omitting another index:
+# x[,2] returns second column
+# x[4,] returns 4th row
+
+# To extract a matrix element and keep the class as matrix use
+# setting 'drop = FALSE'
+
+x[1, 2, drop = FALSE]	#subsets 1x1 matrix from a bigger one
+
+# By analogy rows or columns may be extracted as 1xN or Nx1 matrices
+
+# Subsetting list elements:
+
+x <- list(foo = 1:4, bar = 0.6)
+x[1]		# returns a LIST named $foo with 1 element (a vector
+		# 1 2 3 4)
+x[[1]]		# returns a vector 1 2 3 4 itself
+
+x$bar		# returns a vector 0.6
+x[["bar"]]	# returns a vector 0.6
+x["bar"]	# returns a LIST named $bar with 1 element (a vector
+		# consisting of 0.6)
+
+# To extract multiple elements from the list use a vector pointing on
+# desired elements:
+
+x <- list(foo = 1:4, bar = 0.6, baz = "hello")
+x[c(1, 3)]	# returns a list consisting of 2 chosen elements
+
+# Double brakers ([[) or $ cannot be used for extracting multiple
+# elements from the list
+
+# [[ can include computation operation; $ cannot (only literal names)
+
+# To subset element from sublist a vector in [[ should be used:
+
+x <- list(a = list(10, 12, 14), b = c(3.14, 2.81), c = 0.6)
+x[[c(1, 3)]]	# returns 14
+x[[1]][[3]]	# returns 14 as well
+x[[c(2, 1)]]	# returns 3.14
+x[c(1, 3)] 	# returns a list of 2 elements $a (a list) and $c
+
+# Partial matching of names is allowd with [[ and $
+
+x <- list(aardvark = 1:5)
+x$a		# returns the same as x$aardvark
+
+# for [[ operator additional tuning is required:
+
+x[["a"]]		# returns NULL, but
+x[["a", exact = FALSE]]	# returns the same as x[[aardvark]]
+
+# Operator NOT is denoted with ! sign:
+
+x <- c(1, 2, NA, 4, NA, 5)
+bad <- is.na(x)
+x[!bad]				# returns a vector excluding NAs (a 
+				# common method to remove missing
+				# values
+
+# Function complete.cases() returns a logical vector where TRUE
+# stays if all analyzed variables (in brackets) have element with
+# corresponding index; FALSE is put for indices that are incomplete
