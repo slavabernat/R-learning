@@ -41,6 +41,11 @@ tmp <- set1_full$Temp > 90
 set2 <- set1_full[tmp, ]		# extracts subset with 2nd filter
 mean(set2$Solar.R)
 
+# solution from a mailing list:
+
+a <- subset(airquality, airquality$Ozone > 31 & airquality$Temp > 90)
+mean(a$Solar.R)
+
 ## 9
 
 mean(airquality[airquality$Month == 6, ]$Temp)
