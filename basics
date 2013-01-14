@@ -257,3 +257,452 @@ x[!bad]				# returns a vector excluding NAs (a
 # Function complete.cases() returns a logical vector where TRUE
 # stays if all analyzed variables (in brackets) have element with
 # corresponding index; FALSE is put for indices that are incomplete
+
+# > airquality[1:6, ] subsets 6 rows of a airquality dataset
+# > good <- complete.cases(airquality) 	subsets all COMPLETE rows from 
+# 					airquality dataset
+# > airquality[good, ][1:6, ]	subsets first 6 COMPLETE rows form 
+#				airquality dataset
+
+# Vectors are added elementwise:
+x <- 1:4; y <- 6:9
+x+y			# prints a vector 7 9 11 13
+x*y			# prints a vector 6 14 24 36
+
+# The same is true for matrices
+# To make true matrix multiplication operator %*% is used
+x %*% y 		# prints matrix - a product of matrix multiplicatio
+
+### Reading and writing data ###
+
+read.table		# read tabular data
+read.csv
+
+readLines		# reads a text file
+source			# reads R code files (inverse of dump)
+dget			# reads R code files (inverse of dput)
+load			# reads saved workplace
+unserialize		# reads single R object in binary form
+
+write.table		# writing functions
+writeLines		#
+dump			#
+dput			#
+save			#
+serialize		# --''--
+
+read.table 		# has arguments:
+			# file
+			# header (logical, test if there is a header)
+			# sep (string, column separation syntax)
+			# colClasses (a char vector, indicates class of
+			# each column in the dataset
+			# nrows (the number of rows in the dataset)
+			# comment.char (a char indicating comment character)
+			# skip (number of lines to skip from the beginning)
+			# stringsAsFactors, should chars be coded as factor
+data <- read.table("foo.txt")
+
+# set comment.char="" if there's no comments in the file
+
+# quick and dirty way to figure out the classes of each column:
+
+initial <- read.table("datatable.txt", nrows = 100)
+classes <- sapply(initial, class)
+tabAll <- read.table("datatable.txt,
+			colClasses = classes)
+
+# setting colClasses speeds up data processing
+# setting nrows doesn't speed up R but helps with memory usage
+
+y <- data.frame(a = 1, b = "a")
+dput(y)				# prints content of y with all metadata (column
+				# names, data classes etc.
+dput(y, file = "y.R")		# writes the output into file
+new.y <- dget("y.R")		# reads a file created with dput (reconstruct)
+new.y				# prints the same as print(y)
+
+# dump() is capable of handling multiple R objects (dput is only for 1)
+x <- "foo"
+dump(c("x", "y"), file = "data.R")	# writes two objects into one file
+rm (x, y)
+source("data.R")			# reconstructs both objects in R
+y					# prints original content of y
+x					# prints original content of x
+
+# R can connect to simple files, compressed files gzfile() or bzfile() and url()
+
+file()		# has attributes:
+		# description (the name of file)
+		# open ("r/w/a/rb/wb/ab") read/write/append/binary
+		# blocking = TRUE (?)
+		# encoding = getOption("encoding")
+
+# Usage of connection:
+
+con <- file("foo.txt", "r")	# connects to a file in readonly mode
+data <- read.csv(con)
+close(con)			# closes connection to a file
+
+# is equivalent to
+
+data <- read.csv("foo.txt")
+
+### str function ###
+
+# compactly displays the internal structure of an R object
+
+str(ls)			# lists possible attributes, gives quick overview of the
+			# object's content
+
+#### WEEK TWO ####
+
+### Control structures ###
+
+# Testing a condition
+
+if (<condition1>) {
+	<to do>
+} else if (<condition2>) {
+		<to do 2>
+} else {
+	<to do 3>
+}
+
+# 'R-style' testing conditions
+
+y <- if(x > 3) {		# if (x>3) {
+	10			#	y <-10
+} else {			# } else {
+	0			#	y <-0
+}				# }
+
+# FOR loops
+
+for (<var> in <range>) {
+	<actions>
+}
+
+# <range> may be 
+# ascending/descending sequence (x:y)
+# seq_along(<vector>): <var> is integer index of vector's elements
+# <vector>: <var> is element of vector (may be of any type)
+# seq_len(<integer>): <var> is sequence (1 : <integer>)
+
+# WHILE loops
+
+while (<conditions>) {
+	<actions>
+}
+
+# conditions can be combined, e.g. (x>1 && x<=10)
+
+break			# stops executing loop and returns to program body
+
+next			# skips an iteration
+
+### Functions ###
+
+f <- function(<arguments>) {
+	<actions>
+}
+
+# functions can be nested or passed as arguments to other functions
+
+# formal arguments are arguments included in the function definition
+
+formals(function)	# returns a list of all the formal arguments
+			# of a function
+
+# arguments can be missing or might have default values
+# arguments can be matched positionally or by name
+
+args(function)		# returns a list of arguments of a function
+
+# assigning default NULL value to an argument is equivalent to not
+# assigning any value
+
+### The ... argument ###
+# - is often used when extending another function and you don't want
+# to copy the entire argument list of the original function
+
+myplot <- function(x, y, type = "l", ...) {	# function myplot
+	plot(x, y, type = type, ...)		# extends function 
+}						# plot with type = 
+						# = "l"
+
+# ... is also used when the number of arguments cannot be known in 
+# advance
+
+args(paste)		# returns function(..., sep = " ")
+
+# it's possible to define a function inside function:
+make.power <- function(n) {
+	pow <- function(x) {
+		x^n		# n is called FREE variable because it's not defined inside
+	}			# a function pow. However the value of n is defined in a 
+	pow			# parent environment (function make.power) and is found by R
+}				# Thus, function make.power returns another function rather 
+				# than a value or object 
+cube <- make.power(3)		# Function cube is the output of function make.power at n = 3
+
+ls(environment(cube))		# returns objects enclosed in the function's environment
+get("n", environment(cube))	# returns a value of object "n" from function's environment
+
+### Optimization Application ###
+
+optim, nlm and optimize		# are function that can optimize the function (find its 
+				# max/ min etc.
+make.NegLogLik <- function(data, fixed = c(FALSE, FALSE)) {
+	params <- fixed
+	function(p) {
+		params[!fixed] <- p
+		mu <- params[1]
+		sigma <- params[2]
+		a <- -0.5*length(data)*log(2*pi*sigma^2)
+		b <- -0.5*sum((data-mu)^2 / (sigma^2)
+		-(a+b)
+	}
+}
+# this is a "constructor" function for determination of Negative Log Likelihood
+# Optimization functions in R minimize functions, so you need to use the 
+# negative log-likelihood
+# variable "fixed" is a vector that defines if mu and sigma are fixed or not,
+# by default both this parameters are not fixed
+# "constructor" function returns objective function(p) where p are defined when
+# objective function is called (mu and sigma, if they are fixed)
+normals <- rnorm(100, 1, 2)		# 100 normal randoms mu = 1
+					# sigma = 2
+nLL <- make.NegLogLik(normals)		# nLL is a function for optimization
+optim(c(mu = 0, sigma = 1), nLL)$par	# returns a value for minimization of 
+					# function nLL
+
+nLL <- make.NegLogLik(normals, c(FALSE, 2))	# nLL is a function with fixed
+						# sigma = 2
+nLL <- make.NegLogLik(normals, c(1, FALSE))	# nLL is a function with fixed
+						# mu = 1
+# for optimization (minimization) of functions of 1 parameter optimize() is used
+optimize(nLL, c(1e-6, 10))$minimum	# 1e-6 and 10 is interval for optimization
+
+# For plotting functions:
+# set x interval and a number of points:
+x <- seq(1.7, 1.9. len = 100)
+# assign a function(x) to y:
+y <- sapply(x, nLL)
+# function plot():
+plot(x, exp(-(y-min(y))), type = "l")
+
+### Smart Looping ###
+
+> lapply
+function (X, FUN, ...)			# X is a list, FUN is a function(name)
+{
+    FUN <- match.fun(FUN)
+    if (!is.vector(X) || is.object(X)) 
+        X <- as.list(X)			# coersion of X to list type
+    .Internal(lapply(X, FUN))		# looping is done internally in C code
+}
+					
+# implementation
+> x <- list(a = 1:5, b = rnorm(10))
+> lapply(x, mean)
+$a
+[1] 3			# is a mean of a = 1:5
+
+$b
+[1] 0.3474802		# is a bmean of b = rnorm(10)
+
+###
+runif(n, min, max)	# generates a sequense of uniform random numbers
+###
+
+# replacing ... in lapply:
+> x <- 1:4
+> lapply (x, runif, min = 0, max = 10)	# additional parameters of a function runif
+[[1]]					# can be specified as lapply arguments
+[1] 7.619739				# in place of "..."
+
+[[2]]
+[1] 9.329098 4.706785
+
+[[3]]
+[1] 6.035881 4.849897 1.088063
+
+[[4]]
+[1] 2.477268 4.985145 3.728667 9.346914
+
+### defining 'anonimous' function inside lapply
+
+> x <- list(a = matrix(1:4, 2, 2), b = matrix(1:6, 3, 2))
+> lapply(x, function(elt) elt[,1])		# here functin elt is defined inside
+$a						# lapply, which extracts first column
+[1] 1 2						# from matrices stored in x
+						# outside lapply this function 
+$b						# doesn't exist
+[1] 1 2 3
+
+### sapply() is based on lapply() but output is simplified:
+# 1) if the result is a list where every element has length 1 then a vector is returned
+# 2) if the result is a list where every element is a vector of the same length (>1),
+#	a matrix is returned
+# 3) if it can't figure things out, a list is returned
+
+> x <- list(a = 1:4, b = rnorm(10), c = runif(12, 0, 2))
+> lapply(x, mean)
+$a
+[1] 2.5
+
+$b
+[1] -0.4283771
+
+$c
+[1] 0.5304538
+
+> sapply(x, mean)
+         a          b          c 
+ 2.5000000 -0.4283771  0.5304538
+
+> mean(x)		# x is a list!
+[1] NA
+Warning message:
+In mean.default(x) : argument is not numeric or logical: returning NA
+
+###
+rpois(n, lambda)	# random numbers in Poisson distribution
+###
+
+### apply() ####
+> str(apply)		# similar as lapply, used for arrays (matrices etc.)
+function (X, MARGIN, FUN, ...)
+# X is an array
+# MARGIN - specifies which dimension of array is used and which is omitted
+# FUN - function
+> x <- matrix(rnorm(200), 20, 10)
+> apply(x, 2, mean)		# margin = 2 indicates that means of columns ate to be calculated
+ [1]  0.12918011  0.04639169  0.03875866  0.14212439 -0.30990228 -0.27320980
+ [7]  0.22973051  0.01607110 -0.41067140  0.29695663
+
+> apply(x, 1, sum)		# margin = 1 specifies that columns must be collapsed and rows
+				# are to be preserved
+ [1] -6.2945719 -0.2628770  0.7113358 -3.3812529 -4.6752282  3.0190023
+ [7] -2.3946635 -2.1600439  5.3306376 -2.9202463  3.5202640 -1.8488090
+[13] -4.1021391  5.3066731 -1.6428418  6.7508160 -3.0713590 -1.0918777
+[19]  5.9619293  1.3538445
+
+# shortcuts fot these operations:
+
+rowSums = apply(x, 1, sum)
+rowMeans = apply(x, 1, mean)
+colSums = apply(x, 2, sum)
+colMeans = apply(x, 2, mean)
+
+### arrays of higher dimensions
+> a <- array(rnorm(2*2*10), c(2, 2, 10))	# defines 3D array
+> apply(a, c(1, 2), mean)			# calculates a mean of each 2x2 matrix in array
+           [,1]       [,2]
+[1,] 0.07754168 -0.7605408
+[2,] 0.06596549  0.5387335
+> rowMeans(a, dims = 2)				# equivalent shortcut
+           [,1]       [,2]
+[1,] 0.07754168 -0.7605408
+[2,] 0.06596549  0.5387335
+
+### tapply ###
+> str(tapply)				# is used to apply a function over subset of a vector
+function (X, INDEX, FUN = NULL, ..., simplify = TRUE)
+
+# use:
+> x <- c(rnorm(10), runif(10), rnorm(10, 1))	# 3 groups of data
+> f <- gl(3, 10)				# factor defining groups
+> f
+ [1] 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3
+Levels: 1 2 3
+> tapply(x, f, mean)				# takes mean of each group of numbers
+        1         2         3 
+0.7927938 0.3745147 0.9613116
+
+# if simplify = FALSE tapply returns a list. Sometimes useful, if for every group 
+# more that one value is sought (e.g. range min ... max)
+
+### split
+> str(split)				# splits a vector into subsets (like tapply)
+					# without doing any statistics (unlike tapply)
+function (x, f, drop = FALSE, ...)	# x is data, f is a factor of list of factors
+					# drop indicates whether empty factors levels
+					# should be dropped (useful when using several
+					# factors)
+
+> x <- c(rnorm(10), runif(10), rnorm(10, 1))
+> f <- gl(3, 10)
+> split(x, f)			# returns a list consisting of elements of vector x
+				# (now sapply or apply can be used on this list)
+$`1`
+ [1]  0.277914132 -0.823081122 -0.068840934 -1.167662326 -0.008309014
+ [6]  0.128855402 -0.145875628 -0.163910957  1.763552003  0.762586512
+
+$`2`
+ [1] 0.8668086 0.2061456 0.1779497 0.1648911 0.5652690 0.7271810 0.8759190
+ [8] 0.7084244 0.4774632 0.8202800
+
+$`3`
+ [1] -1.12936065  1.34484576 -0.90495545  0.18882985  2.32400432  1.61563685
+ [7]  2.09166896  1.30660486  0.88984124  0.07568723
+
+### example
+
+> lapply(split(x, f), mean)	# is equivalent to tapply(x, f, mean, simplify = FALSE)
+$`1`
+[1] 0.05552281
+
+$`2`
+[1] 0.5590332
+
+$`3`
+[1] 0.7802803
+
+#
+na.rm = TRUE 			# useful parameter to omit NAs when calculating statistics
+				# of dataset with missing data
+
+### mapply ####
+> str(mapply)			# applies a function in parallel over a set of arguments
+				# (assigned as ... in str)
+function (FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE)
+
+list(rep(1, 4), rep(2, 3), rep(3, 2), rep(4, 1))
+# can be substituted with mapply:
+> mapply(rep, 1:4, 4:1)		# rep() is repetition function
+[[1]]
+[1] 1 1 1 1
+
+[[2]]
+[1] 2 2 2
+
+[[3]]
+[1] 3 3
+
+[[4]]
+[1] 4
+
+# mapply can be used to "vectorize" a function, i.e. use vector arguments with 
+# functions that normally don't allow that:
+> noise <- function(n, mean, sd) {	# generates some random noise
++ rnorm(n, mean, sd)
++ }
+> noise(1:5, 1:5, 2)			# tried to make 1 number with mean 1, 2 with mean 2 etc.
+[1] 4.185828 2.090021 1.569743 5.730446 7.148882	# result is wrong
+> mapply(noise, 1:5, 1:5, 2)		# that's how it's done!
+[[1]]
+[1] 4.79131
+
+[[2]]
+[1] 0.7940054 1.2182644
+
+[[3]]
+[1] 2.167556 2.248685 2.266738
+
+[[4]]
+[1] 3.408645 6.883641 2.604923 3.223665
+
+[[5]]
+[1] 6.305073 7.249545 3.455778 3.983828 6.047241
